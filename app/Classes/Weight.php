@@ -36,6 +36,17 @@ class Weight
     //         Redis::set($key, json_encode($weightLists));
     //     }
     // }
+
+    public function exists($payway)
+    {
+        $weightkey = "Pay_Weight_{$payway}";
+
+        if (Redis::exists($weightkey)) {
+            return true;
+        }
+        return false;
+    }
+
     public function get($payway)
     {
         $weightkey = "Pay_Weight_{$payway}";
@@ -46,18 +57,20 @@ class Weight
         // 取得使用的商戶資料
         $use = count($merchants) - 1;
         $merchant = $merchants[$use];
+        $this->delete($weightkey, $merchants, $use);
 
         return $merchant;
     }
 
-    public function delete($payway)
+    public function delete($weightkey, $merchants, $use)
     {
-        // 更新 (刪除用調的資料)
-        $weightkey = "Pay_Weight_{$payway}";
-        $merchants = json_decode(Redis::get($weightkey), true);
-        $use = count($merchants) - 1;
         unset($merchants[$use]);
-        Redis::set($weightkey, json_encode($merchants));
+
+        if (count($merchants) == 0) {
+            Redis::del($weightkey);
+        } else {
+            Redis::set($weightkey, json_encode($merchants));
+        }
     }
 
     public function create($payway)
