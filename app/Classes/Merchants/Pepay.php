@@ -4,7 +4,6 @@ namespace App\Classes\Merchants;
 
 use Ixudra\Curl\Facades\Curl;
 use App\Classes\Encrypt;
-use App\Repositories\PepayRepository;
 use App\Repositories\OrderRepository;
 use App\Classes\Log;
 
@@ -23,7 +22,7 @@ class Pepay
         $datas['ORDER_ITEM'] = urlencode($inputs['item']);
         $datas['AMOUNT'] = $inputs['amount'];
         $datas['CURRENCY'] = $inputs['currency'];
-        $datas['PROD_ID'] = PepayRepository::getPepayProdID($inputs['mode'])[0]['prod_id'];
+        $datas['PROD_ID'] = $inputs['prod_id'];
         $datas['CHECK_CODE'] = Encrypt::pepay('Pepay', $datas);
 
         try {
@@ -36,7 +35,6 @@ class Pepay
             $order = [
                 'order_id' => $inputs['order_id'],
                 'merchant_id' => $inputs['merchant_id'],
-                'payment_id' => $inputs['payment_id'],
                 'payment_id' => $inputs['payment_id'],
                 'item' => $inputs['item'],
                 'customer_id' => $inputs['customer_id'],

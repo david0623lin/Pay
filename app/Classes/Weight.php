@@ -7,49 +7,14 @@ use App\Repositories\MerchantRepository;
 
 class Weight
 {
-
-
-    // public function createWeight($payway)
-    // {
-    //     $key = "Pay_Weight_{$payway}";
-
-    //     $weightLists = [];
-    //     $merchants = MerchantRepository::getAll();
-
-    //     foreach ($merchants as $merchant) {
-    //         if (!$merchant['status']) {
-    //             continue;
-    //         }
-    //         $webSuppoets = json_decode($merchant['web_atm_suppoets'], true);
-    //         $storeSuppoets = json_decode($merchant['store_suppoets'], true);
-
-    //         if (($merchant['web_atm'] && array_key_exists($mode, $webSuppoets)) || ($merchant['store'] && array_key_exists($mode, $storeSuppoets))) {
-    //             // 當該付款模式的權重快取無資料
-    //             if (!Redis::exists($key) || json_decode(Redis::get($key), true) == []) {
-    //                 for ($i = 0; $i < $merchant['weight']; $i++) {
-    //                     $weightLists[] = $merchant;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     if ($weightLists != []) {
-    //         Redis::set($key, json_encode($weightLists));
-    //     }
-    // }
-
-    public function exists($payway)
-    {
-        $weightkey = "Pay_Weight_{$payway}";
-
-        if (Redis::exists($weightkey)) {
-            return true;
-        }
-        return false;
-    }
-
     public function get($payway)
     {
         $weightkey = "Pay_Weight_{$payway}";
+
+        if (!Redis::exists($weightkey)) {
+            // 沒有資料就先建立
+            $this->create($payway);
+        }
         // 取得可用的商戶
         $merchants = json_decode(Redis::get($weightkey), true);
         // 打亂排序
@@ -60,17 +25,6 @@ class Weight
         $this->delete($weightkey, $merchants, $use);
 
         return $merchant;
-    }
-
-    public function delete($weightkey, $merchants, $use)
-    {
-        unset($merchants[$use]);
-
-        if (count($merchants) == 0) {
-            Redis::del($weightkey);
-        } else {
-            Redis::set($weightkey, json_encode($merchants));
-        }
     }
 
     public function create($payway)
@@ -115,8 +69,14 @@ class Weight
         return $lists;
     }
 
-    public function update()
+    public function delete($weightkey, $merchants, $use)
     {
+        unset($merchants[$use]);
 
+        if (count($merchants) == 0) {
+            Redis::del($weightkey);
+        } else {
+            Redis::set($weightkey, json_encode($merchants));
+        }
     }
 }

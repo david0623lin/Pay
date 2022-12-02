@@ -8,6 +8,8 @@ class PepayRepository
 {
     static public function getPepayProdID($mode)
     {
-        return Pepay::select('prod_id')->where('id', $mode)->get()->toArray();
+        $resp = Pepay::select('prod_id')->where('id', $mode)->get()->toArray();
+
+        return $resp[0];
     }
 }
