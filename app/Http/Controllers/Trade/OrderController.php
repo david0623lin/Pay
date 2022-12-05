@@ -4,18 +4,14 @@ namespace App\Http\Controllers\Trade;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Classes\Log;
 use App\Http\Requests\Trade\PayRequest;
 use App\Services\Trade\OrderService;
-use App\Classes\Log;
 
 class OrderController extends Controller
 {
     public function pay(PayRequest $payRequest, OrderService $orderService)
     {
-        $method = $payRequest->method();
-        $url = $payRequest->url();
-        $header = $payRequest->header();
-        $all = $payRequest->all();
         $inputs = $payRequest->only([
             'auth',
             'order_id',
@@ -26,7 +22,7 @@ class OrderController extends Controller
             'currency',
         ]);
         $outputs = $orderService->pay($inputs);
-        Log::write($inputs['order_id'], 'Payment', 'System', $method, $url, $header, $all, $outputs);
+        Log::payment($payRequest, $outputs);
 
         return $outputs;
     }

@@ -15,9 +15,8 @@ class CreateLogTable extends Migration
     {
         Schema::create('log', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('order_id', 32);
+            $table->string('order_id', 32)->unique();
             $table->string('type', 15);
-            $table->string('operator', 15);
             $table->string('method', 10);
             $table->string('url');
             $table->json('header');

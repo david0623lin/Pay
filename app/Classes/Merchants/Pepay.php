@@ -16,23 +16,23 @@ class Pepay
 
     public function pay($inputs)
     {
-        $url = self::REQUEST_URL;
-        $datas['SHOP_ID'] = env('PEPAY_SHOP_IP');
-        $datas['ORDER_ID'] = $inputs['order_id'];
-        $datas['ORDER_ITEM'] = urlencode($inputs['item']);
-        $datas['AMOUNT'] = $inputs['amount'];
-        $datas['CURRENCY'] = $inputs['currency'];
-        $datas['PROD_ID'] = $inputs['prod_id'];
-        $datas['CHECK_CODE'] = Encrypt::pepay('Pepay', $datas);
+        $apiDatas['SHOP_ID'] = env('PEPAY_SHOP_IP');
+        $apiDatas['ORDER_ID'] = $inputs['order_id'];
+        $apiDatas['ORDER_ITEM'] = urlencode($inputs['item']);
+        $apiDatas['AMOUNT'] = $inputs['amount'];
+        $apiDatas['CURRENCY'] = $inputs['currency'];
+        $apiDatas['PROD_ID'] = $inputs['prod_id'];
+        $apiDatas['CHECK_CODE'] = Encrypt::pepay('Pepay', $apiDatas);
 
         try {
-            $response = Curl::to($url)->withData($datas)->withResponseHeaders()->returnResponseObject()->post();
+            $apiResponse = Curl::to(self::REQUEST_URL)->withData($apiDatas)->withResponseHeaders()->returnResponseObject()->post();
         } catch (\Throwable $th) {
             //throw $th;
         }
 
-        if (strpos($response->content, 'shoproute_amt.php') >= 1) {
-            $order = [
+        if (strpos($apiResponse->content, 'shoproute_amt.php') >= 1) {
+            // 成功就寫到order表
+            $insertDatas = [
                 'order_id' => $inputs['order_id'],
                 'merchant_id' => $inputs['merchant_id'],
                 'payment_id' => $inputs['payment_id'],
@@ -44,13 +44,13 @@ class Pepay
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
             ];
-            OrderRepository::add($order);
+            OrderRepository::add($insertDatas);
         }
-        Log::write(
-            $inputs['order_id'], 'Merchant', 'System', 'POST', $url, [], $datas, $response
+        Log::merchant(
+            $inputs['order_id'], 'POST', self::REQUEST_URL, $apiDatas, $apiResponse
         );
 
-        return $response;
+        return $apiResponse->content;
     }
 
     public function receive01($inputs)

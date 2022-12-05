@@ -27,8 +27,6 @@ class PayRequest extends FormRequest
             'auth' => 'required|string',
             'order_id' => 'required|string',
             'payway' => 'required|string',
-            // 'web_atm_code' => 'required_if:payway,webatm|string',
-            // 'store_type' => 'required_if:payway,store|in:ibon,fami,life,ok',
             'item' => 'required|string',
             'amount' => 'required|integer|min:0',
             'customer_id' => 'required|integer',
